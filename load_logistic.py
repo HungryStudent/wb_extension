@@ -69,7 +69,6 @@ for warehouse in response.json()['result']['report']:
         warehouse_name = warehouse['warehouseName'].replace("СЦ ", "").lower()
 
         if "Минск" in warehouse['warehouseName']:
-            print(warehouse)
 
         if warehouse_name == "санкт-петербург":
             crud.update_reception('санкт-петербург уткина заводь', warehouse['coefficient'])

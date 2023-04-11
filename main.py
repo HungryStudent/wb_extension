@@ -120,7 +120,6 @@ async def get_priority_subjects_request(keyword: str):
         categories[category]["percent_part"] = int((categories[category]["count"] / summa) * 100)
     res_categories = []
     for category in categories.keys():
-        print(categories[category])
         res_categories.append(
             schemas.PriorityCategory(name=categories[category]['name'], count=categories[category]['count'],
                                      percent_part=categories[category]['percent_part']))
