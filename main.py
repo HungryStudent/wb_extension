@@ -77,6 +77,9 @@ async def get_logistic_request(article_id: int, warehouse_id: int):
 @app.get("/api/get_data", response_model=schemas.MainData)
 async def get_priority_subjects_request(keyword: str):
     ads_data = requests.get(f"https://catalog-ads.wildberries.ru/api/v5/search?keyword={keyword}").json()
+    if ads_data['adverts'] is None:
+        raise HTTPException(404)
+
     categories = crud.get_categories_name(ads_data["prioritySubjects"])
     cards_ids = []
     for advert in ads_data["adverts"]:
