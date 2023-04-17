@@ -36,3 +36,4 @@ for category in response.json()['data']['categories']:
     crud.add_category(category['id'], category['percent'], category['percentFBS'])
     if i % 1000 == 0:
         print(int(1000 // 70), '%')
+    i += 1

@@ -28,15 +28,15 @@ response = requests.request("GET",
 warehouses = response.json()['data']['warehouseList'][1:-2]
 for warehouse in warehouses:
     try:
-        logistic_base, logistic = warehouse['delivery'].split(' + ')
+        logistic_base, logistic = warehouse['deliveryExpr'].replace(' за л', '').split(' + ')
     except ValueError:
         logistic_base = 0
         logistic = 0
 
-    from_client = warehouse['deliveryReturn']
+    from_client = warehouse['deliveryReturnExpr']
 
     try:
-        storage_base, storage = warehouse['storageMonoAndMix'].split(' + ')
+        storage_base, storage = warehouse['storageMonoAndMixExpr'].replace(' за л', '').split(' + ')
     except ValueError:
         storage_base = 0
         storage = 0
