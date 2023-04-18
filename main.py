@@ -19,9 +19,6 @@ app.add_middleware(
 )
 
 
-
-
-
 @app.get('/api/size/{article_id}', response_model=schemas.Size)
 async def get_size_by_article_id_request(article_id: int):
     card = await wb_api.get_card(article_id)
@@ -29,6 +26,15 @@ async def get_size_by_article_id_request(article_id: int):
         raise HTTPException(404)
 
     return parse_card.get_size(card)
+
+
+@app.get('/api/certificate/{article_id}')
+async def get_certificate_request(article_id: int):
+    certificate = await wb_api.get_certificate(article_id)
+    if certificate is None:
+        raise HTTPException(404)
+    else:
+        return certificate['url']
 
 
 @app.get('/api/commission/{article_id}', response_model=schemas.CommissionResponse)
