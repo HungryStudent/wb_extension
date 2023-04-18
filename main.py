@@ -66,8 +66,8 @@ async def get_logistic_request(article_id: int, warehouse_id: int):
         logistic_amount = warehouse.logistic_base
         storage_amount = warehouse.storage_base
     else:
-        logistic_amount = warehouse.logistic_base + (volume - 5) * warehouse.logistic
-        storage_amount = warehouse.storage_base + (volume - 5) * warehouse.storage
+        logistic_amount = round(warehouse.logistic_base + (volume - 5) * warehouse.logistic, 2)
+        storage_amount = round(warehouse.storage_base + (volume - 5) * warehouse.storage, 2)
 
     return schemas.Logistic(warehouse_id=warehouse_id, logistic_amount=logistic_amount,
                             from_client=warehouse.from_client,
