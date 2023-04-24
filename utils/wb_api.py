@@ -31,7 +31,6 @@ async def get_card(card_id):
         host = "//basket-11.wb.ru"
     else:
         host = "//basket-12.wb.ru"
-    print(f'https:{host}/vol{vol}/part{part}/{card_id}/info/ru/card.json')
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(f'https:{host}/vol{vol}/part{part}/{card_id}/info/ru/card.json') as resp:
@@ -95,3 +94,21 @@ async def get_card_details(article_id):
             if response["data"]["products"] is None:
                 return
             return response["data"]["products"][0]
+
+
+async def get_card_valuation(imt_id):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                f'https://feedbacks1.wb.ru/feedbacks/v1/{imt_id}') as resp:
+            response = await resp.json(content_type="application/json")
+            if response["valuation"] != "":
+                return {"valuation": response["valuation"], "valuationDistribution": response["valuationDistribution"],
+                        "feedbackCount": response["feedbackCount"]}
+        async with session.get(
+                f'https://feedbacks2.wb.ru/feedbacks/v1/{imt_id}') as resp:
+            response = await resp.json(content_type="application/json")
+            if response["valuation"] != "":
+                return {"valuation": response["valuation"], "valuationDistribution": response["valuationDistribution"],
+                        "feedbackCount": response["feedbackCount"]}
+            else:
+                return None

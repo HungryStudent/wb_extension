@@ -1,12 +1,10 @@
-import sqlite3
-
 from starlette.middleware.cors import CORSMiddleware
-from typing import List
-
-import requests
 from fastapi import FastAPI, HTTPException
+from typing import List
+import requests
 
 from utils import wb_api, parse_card, schemas, crud
+import math
 
 app = FastAPI()
 
@@ -134,3 +132,42 @@ async def get_priority_subjects_request(keyword: str):
                                      percent_part=categories[category]['percent_part']))
 
     return schemas.MainData(priority_categories=res_categories, time_info=time_info, cards=res_cards)
+
+
+@app.get('/api/rating_calculator/{article_id}', response_model=List[schemas.RatingStar])
+async def get_rating_data_request(article_id: int):
+    card = await wb_api.get_card(article_id)
+    if card is None:
+        raise HTTPException(404)
+
+    card_valuation_data = await wb_api.get_card_valuation(card["imt_id"])
+    if card_valuation_data is None:
+        return []
+
+    valuation = float(card_valuation_data["valuation"])
+    valuationDistributionSum = 0
+    feedbackCount = card_valuation_data["feedbackCount"]
+    for key, value in card_valuation_data["valuationDistribution"].items():
+        valuationDistributionSum += int(key) * value
+
+    # создаем массив с основными int рейтингами
+    rating_stars = [schemas.RatingStar(rate=i, reviews_count=0, ratings=[]) for i in range(2, 6)]
+
+    for i in range(int(valuation * 10) + 1, 47):
+        rating = i / 10
+
+        reviews_count = math.ceil((rating * feedbackCount - valuationDistributionSum) / (5 - rating))
+        rating_star_index = 0
+        if 0 <= rating <= 1.6:
+            rating_star_index = 0
+        elif 1.7 <= rating <= 2.6:
+            rating_star_index = 1
+        elif 2.7 <= rating <= 3.6:
+            rating_star_index = 2
+        elif 3.7 <= rating <= 4.6:
+            rating_star_index = 3
+
+        rating_stars[rating_star_index].ratings.append(schemas.Rating(rate=rating, reviews_count=reviews_count))
+        rating_stars[rating_star_index].reviews_count += 1
+
+    return rating_stars

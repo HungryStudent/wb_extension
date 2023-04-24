@@ -3,6 +3,17 @@ from typing import List
 from pydantic import BaseModel
 
 
+class Rating(BaseModel):
+    rate: float
+    reviews_count: int
+
+
+class RatingStar(BaseModel):
+    rate: int
+    reviews_count: int
+    ratings: List[Rating]
+
+
 class TimeInfo(BaseModel):
     max: int
     min: int
