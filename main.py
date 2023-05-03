@@ -140,17 +140,20 @@ async def get_rating_data_request(article_id: int):
     if card is None:
         raise HTTPException(404)
 
+    # получаем информацию об отзывах на эту карточку
     card_valuation_data = await wb_api.get_card_valuation(card["imt_id"])
     if card_valuation_data is None:
         return []
 
     valuation = float(card_valuation_data["valuation"])
+    if valuation > 4.6:
+        return []
     valuationDistributionSum = 0
     feedbackCount = card_valuation_data["feedbackCount"]
     for key, value in card_valuation_data["valuationDistribution"].items():
         valuationDistributionSum += int(key) * value
 
-    # создаем массив с основными int рейтингами
+    # создаем массив с основными int рейтингами, где index|rate = [0|2, 1|3, 2|4, 3|5]
     rating_stars = [schemas.RatingStar(rate=i, reviews_count=0, ratings=[]) for i in range(2, 6)]
 
     for i in range(int(valuation * 10) + 1, 47):
