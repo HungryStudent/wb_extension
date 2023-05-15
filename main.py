@@ -134,6 +134,15 @@ async def get_priority_subjects_request(keyword: str):
     return schemas.MainData(priority_categories=res_categories, time_info=time_info, cards=res_cards)
 
 
+@app.get('/api/create_product_date/{article_id}')
+async def create_product_date_request(article_id: int):
+    res = requests.get("https://feedbacks1.wb.ru/feedbacks/v1/30493420").json()
+    min_date = "2024-01-01"
+    for record in res["feedbacks"]:
+        min_date = min(min_date, record["createdDate"])
+    return min_date
+
+
 @app.get('/api/rating_calculator/{article_id}', response_model=List[schemas.RatingStar])
 async def get_rating_data_request(article_id: int):
     card = await wb_api.get_card(article_id)
