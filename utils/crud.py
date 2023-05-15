@@ -14,6 +14,9 @@ def start():
         cursor.execute("CREATE TABLE IF NOT EXISTS commissions(category_id INT PRIMARY KEY, fbo INT, fbs INT)")
         cursor.execute(
             "CREATE TABLE IF NOT EXISTS warehouses(warehouse_id INT, warehouse_name TEXT, warehouse_name_lower TEXT, logistic_base FLOAT, logistic FLOAT, from_client FLOAT, storage_base FLOAT, storage FLOAT, reception FLOAT)")
+        cursor.execute(
+          "CREATE TABLE IF NOT EXISTS wb_warehouses(warehouse_id INT, warehouse_name TEXT)")
+
         connection.commit()
 
 

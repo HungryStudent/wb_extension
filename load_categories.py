@@ -1,5 +1,6 @@
 import requests
 import sqlite3
+
 req = requests.get("https://static-basket-01.wb.ru/vol0/data/subject-base.json")
 data = req.json()
 print("Loading...")
