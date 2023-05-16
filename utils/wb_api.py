@@ -90,7 +90,7 @@ async def get_card_details(article_id):
                 f'https://card.wb.ru/cards/detail?curr=rub&dest=-1257786&regions=80,64,38,4,115,83,33,68,70,69,30,86,75,40,1,66,48,110,22,31,71,114,111&spp=0&nm={article_id}') as resp:
             if resp.status == 404:
                 return
-            response = await resp.json(content_type="text/plain")
+            response = await resp.json(content_type="application/json")
             if response["data"]["products"] is None:
                 return
             return response["data"]["products"][0]
