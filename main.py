@@ -144,7 +144,7 @@ async def create_product_date_request(article_id: int):
     min_date = "2024-01-01"
     for record in feedbacks:
         min_date = min(min_date, record["createdDate"])
-    return min_date
+    return min_date[:10]
 
 
 @app.get('/api/rating_calculator/{article_id}', response_model=List[schemas.RatingStar])
