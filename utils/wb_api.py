@@ -91,7 +91,7 @@ async def get_card_details(article_id):
             if resp.status == 404:
                 return
             response = await resp.json(content_type="application/json")
-            if response["data"]["products"] is None:
+            if response["data"]["products"] is None or not response["data"]["products"]:
                 return
             return response["data"]["products"][0]
 
@@ -110,5 +110,21 @@ async def get_card_valuation(imt_id):
             if response["valuation"] != "":
                 return {"valuation": response["valuation"], "valuationDistribution": response["valuationDistribution"],
                         "feedbackCount": response["feedbackCount"]}
+            else:
+                return None
+
+
+async def get_feedbacks(imt_id):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                f'https://feedbacks1.wb.ru/feedbacks/v1/{imt_id}') as resp:
+            response = await resp.json(content_type="application/json")
+            if response["valuation"] != "":
+                return response["feedbacks"]
+        async with session.get(
+                f'https://feedbacks2.wb.ru/feedbacks/v1/{imt_id}') as resp:
+            response = await resp.json(content_type="application/json")
+            if response["valuation"] != "":
+                return response["feedbacks"]
             else:
                 return None

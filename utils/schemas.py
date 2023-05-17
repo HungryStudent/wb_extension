@@ -89,3 +89,15 @@ class Logistic(BaseModel):
     from_client: int
     storage_amount: float
     reception: int
+
+
+class StocksByWarehouses(BaseModel):
+    warehouse_name: str
+    percent: int
+    qty: int
+
+
+class StocksBySizes(BaseModel):
+    size: str
+    warehouse_name: str
+    qty: int

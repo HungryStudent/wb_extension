@@ -136,9 +136,13 @@ async def get_priority_subjects_request(keyword: str):
 
 @app.get('/api/create_product_date/{article_id}')
 async def create_product_date_request(article_id: int):
-    res = requests.get("https://feedbacks1.wb.ru/feedbacks/v1/30493420").json()
+    card = await wb_api.get_card(article_id)
+    if card is None:
+        raise HTTPException(404)
+    # получаем информацию об отзывах на эту карточку
+    feedbacks = await wb_api.get_feedbacks(card["imt_id"])
     min_date = "2024-01-01"
-    for record in res["feedbacks"]:
+    for record in feedbacks:
         min_date = min(min_date, record["createdDate"])
     return min_date
 
@@ -183,3 +187,62 @@ async def get_rating_data_request(article_id: int):
         rating_stars[rating_star_index].reviews_count += 1
 
     return rating_stars
+
+
+@app.get("/api/stocks/{article_id}")
+async def get_stock_request(article_id: int, get_by: str):
+    card = await wb_api.get_card_details(article_id)
+    if card is None:
+        raise HTTPException(404)
+    if get_by == "warehouses":
+        temp_stocks = {}
+        all_stocks_count = 0
+        for size in card["sizes"]:
+            for warehouse in size["stocks"]:
+                all_stocks_count += warehouse["qty"]
+                try:
+                    temp_stocks[warehouse["wh"]] += warehouse["qty"]
+                except KeyError:
+                    temp_stocks[warehouse["wh"]] = warehouse["qty"]
+
+        res = []
+        seller_warehouse = schemas.StocksByWarehouses(warehouse_name="Склад поставщика", percent=0, qty=0)
+        for warehouse_id, qty in temp_stocks.items():
+            warehouse_data = crud.get_warehouse_name(warehouse_id)
+            if warehouse_data is None:
+                seller_warehouse.qty += qty
+                continue
+            warehouse_name = warehouse_data[1]
+
+            percent = qty * 100 / all_stocks_count
+            percent = 1 if percent < 1 else int(percent)
+            res.append(
+                schemas.StocksByWarehouses(warehouse_name=warehouse_name, percent=percent,
+                                           qty=qty))
+
+        percent = seller_warehouse.qty * 100 / all_stocks_count
+        percent = 1 if percent < 1 else int(percent)
+        seller_warehouse.percent = percent
+        res.append(seller_warehouse)
+
+        res = sorted(res, key=lambda x: x.percent, reverse=True)
+        return res
+    elif get_by == "sizes":
+        res = []
+
+        for size in card["sizes"]:
+            seller_sizes = schemas.StocksBySizes(size=size["name"], warehouse_name="Склад поставщика", qty=0)
+            for warehouse in size["stocks"]:
+                warehouse_data = crud.get_warehouse_name(warehouse["wh"])
+                if warehouse_data is None:
+                    seller_sizes.qty += warehouse["qty"]
+                    continue
+                warehouse_name = warehouse_data[1]
+                if warehouse["qty"] != 0:
+                    res.append(
+                        schemas.StocksBySizes(size=size["name"], warehouse_name=warehouse_name, qty=warehouse["qty"]))
+            if seller_sizes.qty != 0:
+                res.append(seller_sizes)
+        return res
+    else:
+        raise HTTPException(400, "invalid get_by param")

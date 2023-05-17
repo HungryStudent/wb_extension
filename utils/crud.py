@@ -15,7 +15,7 @@ def start():
         cursor.execute(
             "CREATE TABLE IF NOT EXISTS warehouses(warehouse_id INT, warehouse_name TEXT, warehouse_name_lower TEXT, logistic_base FLOAT, logistic FLOAT, from_client FLOAT, storage_base FLOAT, storage FLOAT, reception FLOAT)")
         cursor.execute(
-          "CREATE TABLE IF NOT EXISTS wb_warehouses(warehouse_id INT, warehouse_name TEXT)")
+            "CREATE TABLE IF NOT EXISTS wb_warehouses(warehouse_id INT, warehouse_name TEXT)")
 
         connection.commit()
 
@@ -109,5 +109,11 @@ def get_categories_name(ids: List[int]):
             res[category[0]] = {"name": category[1], "count": 0}
         return res
 
+
+def get_warehouse_name(warehouse_id):
+    with closing(sqlite3.connect(database)) as connection:
+        cursor: sqlite3.Cursor = connection.cursor()
+        cursor.execute("SELECT * FROM wb_warehouses WHERE warehouse_id = ?", (warehouse_id,))
+        return cursor.fetchone()
 
 start()
