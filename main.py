@@ -140,7 +140,7 @@ async def create_product_date_request(article_id: int):
     if card is None:
         raise HTTPException(404)
     # получаем информацию об отзывах на эту карточку
-    feedbacks = await wb_api.get_feedbacks(card["imt_id"])
+    feedbacks = await wb_api.get_feedbacks(card["imt_id"], is_order_by_date=True)
     min_date = "2024-01-01"
     for record in feedbacks:
         min_date = min(min_date, record["createdDate"])

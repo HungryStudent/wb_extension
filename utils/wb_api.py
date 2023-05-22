@@ -114,10 +114,13 @@ async def get_card_valuation(imt_id):
                 return None
 
 
-async def get_feedbacks(imt_id):
+async def get_feedbacks(imt_id, is_order_by_date=False):
+    url = f'https://feedbacks1.wb.ru/feedbacks/v1/{imt_id}?'
+    if is_order_by_date:
+        url += "order=dateAsc"
+
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-                f'https://feedbacks1.wb.ru/feedbacks/v1/{imt_id}') as resp:
+        async with session.get(url) as resp:
             response = await resp.json(content_type="application/json")
             if response["valuation"] != "":
                 return response["feedbacks"]
