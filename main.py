@@ -246,3 +246,11 @@ async def get_stock_request(article_id: int, get_by: str):
         return res
     else:
         raise HTTPException(400, "invalid get_by param")
+
+
+@app.get("/api/seasonality")
+async def get_seasonality_request(query: str):
+    res = requests.get(f"http://127.0.0.1:8002/seasonality?query={query}")
+    if res.status_code == 400:
+        raise HTTPException(400, "not found")
+    return res.json()
