@@ -146,7 +146,7 @@ async def unit_calculation_request(article_id: int, data: schemas.UnitCalculatio
     # вычитаем процент выкупа:
     if data.redemption_percent is not None:
         margin -= (logistic_data.logistic_amount * (1 + (100 - data.redemption_percent) / data.redemption_percent)) + (
-                    (100 - data.redemption_percent) / data.redemption_percent * data.logistic_to_mp)
+                (100 - data.redemption_percent) / data.redemption_percent * data.logistic_to_mp)
 
     # вычитаем процент брака
     if data.marriage_percent is not None:
@@ -167,5 +167,6 @@ async def unit_calculation_request(article_id: int, data: schemas.UnitCalculatio
         profit_target.quantity = int(quantity)
         profit_target.day_quantity = int(quantity / 30)
 
+    margin = round(margin, 2)
     return schemas.UnitCalculationResponse(margin=margin, margin_percent=margin_percent, profitability=profitability,
                                            profit_target=profit_target)

@@ -21,7 +21,7 @@ app.include_router(unit.router, prefix="/api/unit")
 
 @app.on_event("startup")
 async def startup_event():
-    # await crud.start()
+    crud.start()
     pass
 
 
