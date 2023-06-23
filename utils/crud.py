@@ -1,3 +1,4 @@
+import configparser
 from typing import List
 
 from utils import schemas
@@ -5,15 +6,42 @@ from utils import schemas
 from contextlib import closing
 import sqlite3
 
+import asyncpg
+from asyncpg import Connection
+
 database = "database.db"
+
+config = configparser.ConfigParser()
+config.read("settings.ini")
+DB_USER = config["db"]["user"]
+DB_PASSWORD = config["db"]["password"]
+DB_DATABASE = config["db"]["database"]
+DB_HOST = config["db"]["host"]
+DB_PORT = config["db"]["port"]
+
+
+async def get_conn() -> Connection:
+    return await asyncpg.connect(user=DB_USER, password=DB_PASSWORD, database=DB_DATABASE, host=DB_HOST, port=DB_PORT)
+
+
+# async def start():
+#     conn: Connection = await get_conn()
+#     await conn.execute("CREATE TABLE IF NOT EXISTS commissions(id SMALLSERIAL PRIMARY KEY, fbo SMALLINT, fbs SMALLINT)")
+#     await conn.execute("CREATE TABLE IF NOT EXISTS warehouses(warehouse_id SMALLSERIAL PRIMARY KEY,"
+#             "warehouse_name VARCHAR(100) UNIQUE, warehouse_name_lower VARCHAR(100),"
+#             "ratio FLOAT, reception_ratio INTEGER)")
+#     await conn.execute("CREATE TABLE IF NOT EXISTS wb_warehouses(warehouse_id INTEGER, warehouse_name VARCHAR(100))")
+#     await conn.execute("CREATE TABLE IF NOT EXISTS categories(id INTEGER, name VARCHAR(100))")
+#     await conn.close()
 
 
 def start():
     with closing(sqlite3.connect(database)) as connection:
         cursor: sqlite3.Cursor = connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS commissions(category_id INT PRIMARY KEY, fbo INT, fbs INT)")
         cursor.execute(
-            "CREATE TABLE IF NOT EXISTS warehouses(warehouse_id INT, warehouse_name TEXT, warehouse_name_lower TEXT, logistic_base FLOAT, logistic FLOAT, from_client FLOAT, storage_base FLOAT, storage FLOAT, reception FLOAT)")
+            "CREATE TABLE IF NOT EXISTS warehouses(warehouse_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "warehouse_name TEXT UNIQUE, warehouse_name_lower TEXT, "
+            "ratio FLOAT, reception_ratio INTEGER)")
         cursor.execute(
             "CREATE TABLE IF NOT EXISTS wb_warehouses(warehouse_id INT, warehouse_name TEXT)")
 
@@ -60,17 +88,27 @@ def get_warehouse(warehouse_id):
         data = cursor.fetchone()
         if data is None:
             return
-        return schemas.Warehouse(id=data[0], name=data[1], logistic_base=data[3], logistic=data[4], from_client=data[8],
-                                 storage_base=data[5], storage=data[6], reception=data[7])
+        return schemas.Warehouse(id=data[0], name=data[1], ratio=data[3], reception_ratio=data[4])
 
 
-def add_warehouse(warehouse_name, warehouse_name_lower, logistic_base, logistic, storage_base, storage):
+def add_warehouse(warehouse_name, warehouse_name_lower, ratio):
+    with closing(sqlite3.connect(database)) as connection:
+        cursor: sqlite3.Cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO warehouses(warehouse_name, warehouse_name_lower, ratio) VALUES(?, ?, ?)",
+                (warehouse_name, warehouse_name_lower, ratio))
+        except sqlite3.IntegrityError:
+            return "unique error"
+        connection.commit()
+
+
+def update_warehouse_by_warehouse_name(warehouse_name, ratio):
     with closing(sqlite3.connect(database)) as connection:
         cursor: sqlite3.Cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO warehouses(warehouse_name, warehouse_name_lower, logistic_base, logistic, storage_base, storage) "
-            "VALUES(?, ?, ?, ?, ?, ?)",
-            (warehouse_name, warehouse_name_lower, logistic_base, logistic, storage_base, storage,))
+            "UPDATE warehouses set ratio = ? where warehouse_name = ?",
+            (ratio, warehouse_name))
         connection.commit()
 
 
@@ -78,17 +116,8 @@ def update_reception(name, reception):
     with closing(sqlite3.connect(database)) as connection:
         cursor: sqlite3.Cursor = connection.cursor()
         cursor.execute(
-            "UPDATE warehouses SET reception = ? WHERE warehouse_name_lower = ?",
+            "UPDATE warehouses SET reception_ratio = ? WHERE warehouse_name_lower = ?",
             (reception, name))
-        connection.commit()
-
-
-def update_logistic_and_storage(name, logistic_base, logistic, from_client, storage_base, storage):
-    with closing(sqlite3.connect(database)) as connection:
-        cursor: sqlite3.Cursor = connection.cursor()
-        cursor.execute(
-            "UPDATE warehouses SET logistic_base = ?, logistic = ?, from_client = ?, storage_base = ?, storage = ? WHERE warehouse_name_lower = ?",
-            (logistic_base, logistic, from_client, storage_base, storage, name))
         connection.commit()
 
 
@@ -115,5 +144,3 @@ def get_warehouse_name(warehouse_id):
         cursor: sqlite3.Cursor = connection.cursor()
         cursor.execute("SELECT * FROM wb_warehouses WHERE warehouse_id = ?", (warehouse_id,))
         return cursor.fetchone()
-
-start()

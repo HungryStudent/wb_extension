@@ -1,6 +1,37 @@
-from typing import List
+from enum import Enum
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
+
+
+class DeliveryTypeEnum(Enum):
+    fbo = "fbo"
+    fbs = "fbs"
+
+
+class UnitCalculation(BaseModel):
+    delivery_type: DeliveryTypeEnum
+    warehouse_id: int
+    purchase_price: float
+    additional: float = None
+    logistic_to_mp: float = None
+    wrap_days: int = None
+    redemption_percent: int = None
+    marriage_percent: int = None
+    tax_rate: int = None
+    profit_target: int = None
+
+
+class ProfitTarget(BaseModel):
+    quantity: int = 0
+    day_quantity: int = 0
+
+
+class UnitCalculationResponse(BaseModel):
+    margin: float
+    margin_percent: float
+    profitability: int
+    profit_target: ProfitTarget
 
 
 class Rating(BaseModel):
@@ -75,12 +106,8 @@ class WarehouseResponse(BaseModel):
 class Warehouse(BaseModel):
     id: int
     name: str
-    logistic_base: float
-    logistic: float
-    from_client: float
-    storage_base: float
-    storage: float
-    reception: float
+    ratio: float
+    reception_ratio: int = None
 
 
 class Logistic(BaseModel):
@@ -88,7 +115,7 @@ class Logistic(BaseModel):
     logistic_amount: float
     from_client: int
     storage_amount: float
-    reception: int
+    reception_amount: Union[float]
 
 
 class StocksByWarehouses(BaseModel):

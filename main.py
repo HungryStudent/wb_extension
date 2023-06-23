@@ -2,8 +2,8 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from typing import List
 import requests
-
-from utils import wb_api, parse_card, schemas, crud
+from endpoints import *
+from utils import wb_api, schemas, crud
 import math
 
 app = FastAPI()
@@ -16,66 +16,13 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-
-@app.get('/api/size/{article_id}', response_model=schemas.Size)
-async def get_size_by_article_id_request(article_id: int):
-    card = await wb_api.get_card(article_id)
-    if card is None:
-        raise HTTPException(404)
-
-    return parse_card.get_size(card)
+app.include_router(unit.router, prefix="/api/unit")
 
 
-@app.get('/api/certificate/{article_id}')
-async def get_certificate_request(article_id: int):
-    certificate = await wb_api.get_certificate(article_id)
-    if certificate is None:
-        raise HTTPException(404)
-    else:
-        return certificate['url']
-
-
-@app.get('/api/commission/{article_id}', response_model=schemas.CommissionResponse)
-async def get_commission_by_article_id_request(article_id: int):
-    card_details = await wb_api.get_card_details(article_id)
-    if card_details is None:
-        raise HTTPException(404)
-
-    category = crud.get_deliveries_by_category_id(card_details["subjectId"])
-    fbo = schemas.Commission(part=category.fbo_part,
-                             amount="{:.2f}".format(card_details["salePriceU"] // 100 * category.fbo_part // 100))
-    fbs = schemas.Commission(part=category.fbs_part,
-                             amount="{:.2f}".format((card_details["salePriceU"] // 100 * category.fbs_part // 100)))
-    return schemas.CommissionResponse(fbo=fbo, fbs=fbs)
-
-
-@app.get("/api/warehouse", response_model=List[schemas.WarehouseResponse])
-async def get_warehouses():
-    return crud.get_warehouses()
-
-
-@app.get("/api/logistic/{article_id}/{warehouse_id}", response_model=schemas.Logistic)
-async def get_logistic_request(article_id: int, warehouse_id: int):
-    warehouse = crud.get_warehouse(warehouse_id)
-    if warehouse is None:
-        raise HTTPException(404)
-
-    card = await wb_api.get_card(article_id)
-    if card is None:
-        raise HTTPException(404)
-
-    size_data = parse_card.get_size(card)
-    volume = size_data.width * size_data.length * size_data.height * 0.001
-    if volume <= 5:
-        logistic_amount = warehouse.logistic_base
-        storage_amount = warehouse.storage_base
-    else:
-        logistic_amount = round(warehouse.logistic_base + (volume - 5) * warehouse.logistic, 2)
-        storage_amount = round(warehouse.storage_base + (volume - 5) * warehouse.storage, 2)
-
-    return schemas.Logistic(warehouse_id=warehouse_id, logistic_amount=logistic_amount,
-                            from_client=warehouse.from_client,
-                            storage_amount=storage_amount, reception=warehouse.reception)
+@app.on_event("startup")
+async def startup_event():
+    # await crud.start()
+    pass
 
 
 @app.get("/api/get_data", response_model=schemas.MainData)
@@ -254,3 +201,20 @@ async def get_seasonality_request(query: str):
     if res.status_code == 400:
         raise HTTPException(400, "not found")
     return res.json()
+
+
+@app.get("/api/photos/{article_id}")
+async def get_photos_by_article_id_request(article_id: int):
+    try:
+        vol = int(str(article_id)[0:-5])
+        part = int(str(article_id)[0:-3])
+    except ValueError:
+        return
+    host = wb_api.get_base_url(vol, part)
+    card = await wb_api.get_card(article_id)
+    photo_count = card["media"]["photo_count"]
+    photo_urls = []
+    for i in range(photo_count):
+        url = f"https:{host}/vol{vol}/part{part}/{article_id}/images/big/{i + 1}.jpg"
+        photo_urls.append(url)
+    return photo_urls
