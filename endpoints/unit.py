@@ -16,14 +16,17 @@ def calculate_logistic(size_data: schemas.Size, warehouse: schemas.Warehouse):
         storage_amount = 0.12 + (volume - 5) * 0.012
         reception_amount = 15 + (volume - 5) * 1.5
 
-    logistic_amount *= round(warehouse.ratio, 2)
-    storage_amount *= round(warehouse.ratio, 2)
+    logistic_amount *= warehouse.ratio, 2
+    storage_amount *= warehouse.ratio, 2
     from_client = 50
     if warehouse.reception_ratio is None:
         reception_amount = -1
     else:
         reception_amount *= warehouse.reception_ratio
-        reception_amount = round(reception_amount, 2)
+
+    logistic_amount = round(logistic_amount, 2)
+    storage_amount = round(storage_amount, 2)
+    reception_amount = round(reception_amount, 2)
 
     return schemas.Logistic(warehouse_id=warehouse.id, logistic_amount=logistic_amount,
                             from_client=from_client,

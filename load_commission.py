@@ -38,7 +38,7 @@ i = 1
 for category in categories:
     crud.add_category(category['id'], category['percent'], category['percentFBS'])
     if i % 1000 == 0:
-        print(int(i // categories_count), '%')
+        print(int(i / categories_count * 100), '%')
     i += 1
 
 logging.info(f"end {categories_count}")
