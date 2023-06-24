@@ -1,11 +1,9 @@
-import configparser
-import datetime
-import time
-
-import requests
-import json
-
 from utils import crud
+import configparser
+import requests
+import datetime
+import logging
+
 
 config = configparser.ConfigParser()
 config.read("settings.ini")
@@ -13,7 +11,11 @@ WBToken = config["settings"]["WBToken"]
 receptionWBToken = config["settings"]["receptionWBToken"]
 x_supplier_id = config["settings"]["x-supplier-id"]
 x_supplier_id_external = config["settings"]["x-supplier-id-external"]
-
+logging.basicConfig(filename="load_logistic.txt",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO)
 
 # Получаем данные о коэффициенте логистики и хранения
 def update_warehouse():
@@ -37,6 +39,7 @@ def update_warehouse():
         res = crud.add_warehouse(warehouse["warehouseName"], warehouse["warehouseName"].lower(), ratio)
         if res == "unique error":
             crud.update_warehouse_by_warehouse_name(warehouse["warehouseName"], ratio)
+    logging.info(f"end update warehouses {len(warehouses)}")
 
 
 # Получаем данные о коэффициенте приемки
@@ -75,6 +78,7 @@ def update_reception():
                 crud.update_reception('санкт-петербург кбт', warehouse['coefficient'])
             else:
                 crud.update_reception(warehouse_name, warehouse['coefficient'])
+    logging.info(f"end update receptions {len(warehouses)}")
 
 
 update_warehouse()

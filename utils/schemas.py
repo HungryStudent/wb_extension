@@ -1,7 +1,7 @@
-from enum import Enum
-from typing import List, Optional, Union
-
 from pydantic import BaseModel
+from typing import List
+from enum import Enum
+
 
 
 class DeliveryTypeEnum(Enum):
@@ -115,7 +115,7 @@ class Logistic(BaseModel):
     logistic_amount: float
     from_client: int
     storage_amount: float
-    reception_amount: Union[float]
+    reception_amount: float
 
 
 class StocksByWarehouses(BaseModel):

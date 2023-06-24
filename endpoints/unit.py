@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from utils import schemas, crud, parse_card, wb_api
 from typing import List
 
@@ -10,7 +10,7 @@ def calculate_logistic(size_data: schemas.Size, warehouse: schemas.Warehouse):
     if volume <= 5:
         logistic_amount = 50
         storage_amount = 0.12
-        reception_amount = 15.3
+        reception_amount = 15.32
     else:
         logistic_amount = 50 + (volume - 5) * 5
         storage_amount = 0.12 + (volume - 5) * 0.012
@@ -23,7 +23,7 @@ def calculate_logistic(size_data: schemas.Size, warehouse: schemas.Warehouse):
         reception_amount = -1
     else:
         reception_amount *= warehouse.reception_ratio
-    reception_amount = round(reception_amount, 2)
+        reception_amount = round(reception_amount, 2)
 
     return schemas.Logistic(warehouse_id=warehouse.id, logistic_amount=logistic_amount,
                             from_client=from_client,
@@ -101,7 +101,6 @@ async def unit_calculation_request(article_id: int, data: schemas.UnitCalculatio
 
     price_without_spp = card_details["salePriceU"] // 100
     margin = price_without_spp
-    print(margin)
 
     # вычитаем комиссию WB
     category = crud.get_deliveries_by_category_id(card_details["subjectId"])
@@ -113,18 +112,15 @@ async def unit_calculation_request(article_id: int, data: schemas.UnitCalculatio
         wb_commission_part = category.fbs_part
     wb_commission = card_details["salePriceU"] // 100 * wb_commission_part // 100
     margin -= wb_commission
-    print(margin)
 
     # вычитаем логистику
     margin -= logistic_data.logistic_amount
-    print(margin)
 
     # вычитаем приёмку
     pass
 
     # вычитаем цену закупки
     margin -= data.purchase_price
-    print(margin)
 
     # создаем вычитаемое для рентабельности
     profitability_subtract = data.purchase_price

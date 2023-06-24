@@ -1,5 +1,5 @@
-import json
 import sqlite3
+import json
 
 with open('warehouses.json', 'r', encoding='utf-8') as f:  # открыли файл с данными
     print("Loading...")

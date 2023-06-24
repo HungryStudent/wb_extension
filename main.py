@@ -1,9 +1,9 @@
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
+from utils import wb_api, schemas, crud
+from endpoints import *
 from typing import List
 import requests
-from endpoints import *
-from utils import wb_api, schemas, crud
 import math
 
 app = FastAPI()

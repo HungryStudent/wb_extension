@@ -1,13 +1,12 @@
-import configparser
-from typing import List
-
 from utils import schemas
+from typing import List
+import configparser
 
 from contextlib import closing
 import sqlite3
 
-import asyncpg
 from asyncpg import Connection
+import asyncpg
 
 database = "database.db"
 
