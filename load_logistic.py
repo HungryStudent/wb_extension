@@ -4,7 +4,6 @@ import requests
 import datetime
 import logging
 
-
 config = configparser.ConfigParser()
 config.read("settings.ini")
 WBToken = config["settings"]["WBToken"]
@@ -17,6 +16,7 @@ logging.basicConfig(filename="load_logistic.txt",
                     datefmt='%H:%M:%S',
                     level=logging.INFO)
 
+
 # Получаем данные о коэффициенте логистики и хранения
 def update_warehouse():
     headers = {
@@ -27,8 +27,10 @@ def update_warehouse():
     cookies = {"WBToken": WBToken}
     payload = {"warehouse": "asc"}
 
+    now_date = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")
+
     res = requests.post(
-        "https://seller-weekly-report.wildberries.ru/ns/categories-info/suppliers-portal-analytics/api/v1/tariffs-period?date=2023-06-23",
+        f"https://seller-weekly-report.wildberries.ru/ns/categories-info/suppliers-portal-analytics/api/v1/tariffs-period?date={now_date}",
         headers=headers, json=payload, cookies=cookies)
 
     warehouses = res.json()["data"]["warehouseList"]

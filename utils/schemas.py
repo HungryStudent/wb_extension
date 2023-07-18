@@ -8,6 +8,9 @@ class DeliveryTypeEnum(Enum):
     fbo = "fbo"
     fbs = "fbs"
 
+class Reception(BaseModel):
+    ratio: float
+    amount: float
 
 class UnitCalculation(BaseModel):
     delivery_type: DeliveryTypeEnum
@@ -115,7 +118,7 @@ class Logistic(BaseModel):
     logistic_amount: float
     from_client: int
     storage_amount: float
-    reception_amount: float
+    reception: Reception
 
 
 class StocksByWarehouses(BaseModel):

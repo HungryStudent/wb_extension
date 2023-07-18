@@ -10,7 +10,7 @@ def calculate_logistic(size_data: schemas.Size, warehouse: schemas.Warehouse):
     if volume <= 5:
         logistic_amount = 50
         storage_amount = 0.12
-        reception_amount = 15.32
+        reception_amount = 15
     else:
         logistic_amount = 50 + (volume - 5) * 5
         storage_amount = 0.12 + (volume - 5) * 0.012
