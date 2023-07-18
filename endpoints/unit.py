@@ -30,7 +30,8 @@ def calculate_logistic(size_data: schemas.Size, warehouse: schemas.Warehouse):
 
     return schemas.Logistic(warehouse_id=warehouse.id, logistic_amount=logistic_amount,
                             from_client=from_client,
-                            storage_amount=storage_amount, reception_amount=reception_amount)
+                            storage_amount=storage_amount,
+                            reception=schemas.Reception(ratio=warehouse.reception_ratio, amount=reception_amount))
 
 
 @router.get('/size/{article_id}', response_model=schemas.Size)
